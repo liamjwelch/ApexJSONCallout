@@ -1,6 +1,6 @@
-public class WorkOrderToJSON {
+public class WOToJSON {
     
-    @InvocableMethod(label='WorkOrderToJSON' description='Test pinging external service.')
+    @InvocableMethod(label='WOToJSON' description='Test pinging external service.')
     public static void calloutMethod(List<ID> ids){
         List<String> woIDS = new List<String>();
         try {
@@ -9,7 +9,7 @@ public class WorkOrderToJSON {
                 woIDS.add(wo.RootWorkOrderId);
                 Id idToPost = workOrders.get(0).RootWorkOrderID;
                 //Callout
-                WorkOrderToJSON.getPostJSONidToPost);
+                WorkOrderToJSON.getPostJSON(idToPost);
             }
         } catch (QueryException e) {
             System.debug(e.getMessage());    
