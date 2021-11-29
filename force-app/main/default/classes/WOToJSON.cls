@@ -1,28 +1,22 @@
-
+    //https://trailhead.salesforce.com/content/learn/projects/quickstart-vscode-salesforce/use-vscode-for-salesforce
     public class WOToJSON {
 
         @InvocableMethod(label='WOToJSON' description='Test pinging external service.')
         public static void calloutMethod(List<ID> ids){
-        List<String> woIDS = new List<String>();
-        List<WorkOrder> workOrders = [SELECT RootWorkOrderId FROM WorkOrder WHERE Id in :ids];
-        for (WorkOrder wo : workOrders) {
-        woIDS.add(wo.RootWorkOrderId);
-        }
-        //System.debug(JSON.serializePretty(workOrders));
-        //
-		Id idToPost = workOrders.get(0).RootWorkOrderID;
-        System.debug('SendingJSON');
-        WorkOrderToJSON.get_post_JSON(idToPost);
+            List<String> woIDS = new List<String>();
+            try {
+            List<WorkOrder> workOrders = [SELECT RootWorkOrderId FROM WorkOrder WHERE Id in :ids];
+            for (WorkOrder wo : workOrders) {
+            woIDS.add(wo.RootWorkOrderId);
+               Id idToPost = workOrders.get(0).RootWorkOrderID;
+            //Callout
+            WorkOrderToJSON.get_post_JSON(idToPost);
+            }
+            } catch (QueryException e) {
+            System.debug(e.getMessage());    
+            }
         }
     
-    public static void test(List<ID> ids) {
-        List<String> woIDS = new List<String>();
-        List<WorkOrder> workOrders = [SELECT RootWorkOrderId FROM WorkOrder WHERE Id in :ids];
-        for (WorkOrder wo : workOrders) {
-        woIDS.add(wo.RootWorkOrderId);
-        }
-        System.debug(JSON.serializePretty(workOrders));
-    	}
 
     	@future(callout=true)
    		public static void getPostJSON(Id lookupID) {
@@ -34,10 +28,9 @@
         
         String post = JSON.serialize(objWO);
         system.debug(JSON.serialize(objWO));
-            
      	Http http = new Http();
         HttpRequest request = new HttpRequest();
-        request.setEndpoint('https://hookb.in/pz7qbbYpWLsRPnrrPLl3');
+        request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jV');
         request.setMethod('POST');
         request.setHeader('Content-Type', 'application/json;charset=UTF-8');
         // Set the body as a JSON object
@@ -49,17 +42,14 @@
         } else {
             System.debug(response.getBody());
         }
-    }
+        }
     
-    public class WrapperWorkOrder {
-        
+        public class WrapperWorkOrder {
         public Datetime woCreatedDate {get;set;}
         public String woStatus {get; set;}
-        
         public WrapperWorkOrder() {
             this.woCreatedDate = null;
-            this.woStatus = null;
-            
+            this.woStatus = null;  
         }
     }
 }
