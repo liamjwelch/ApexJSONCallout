@@ -1,14 +1,15 @@
-public with sharing class WOToJSON {
-    public WOToJSON() {
+
+    public class WOToJSON {
 
         @InvocableMethod(label='WOToJSON' description='Test pinging external service.')
-        public static void CalloutMethod(List<ID> ids){
+        public static void calloutMethod(List<ID> ids){
         List<String> woIDS = new List<String>();
         List<WorkOrder> workOrders = [SELECT RootWorkOrderId FROM WorkOrder WHERE Id in :ids];
         for (WorkOrder wo : workOrders) {
         woIDS.add(wo.RootWorkOrderId);
         }
         //System.debug(JSON.serializePretty(workOrders));
+        //
 		Id idToPost = workOrders.get(0).RootWorkOrderID;
         System.debug('SendingJSON');
         WorkOrderToJSON.get_post_JSON(idToPost);
@@ -24,7 +25,7 @@ public with sharing class WOToJSON {
     	}
 
     	@future(callout=true)
-   		public static void get_post_JSON(Id lookupID) {
+   		public static void getPostJSON(Id lookupID) {
         
         WorkOrder objWO = [SELECT CreatedDate, Status FROM WorkOrder WHERE RootWorkOrderId = : lookupID];
         WrapperWorkOrder objWrapperWO = new WrapperWorkOrder();
@@ -60,9 +61,5 @@ public with sharing class WOToJSON {
             this.woStatus = null;
             
         }
-    }
-
-
-
     }
 }
