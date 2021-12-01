@@ -12,6 +12,8 @@ public class WOToJSON {
                 WorkOrderToJSON.getPostJSON(idToPost);
             }
         } catch (QueryException e) {
+            String details = e.getMessage();
+            WorkOrderToJSON.createResponseFailure(details);
             System.debug(e.getMessage());    
         }
     }
@@ -36,41 +38,54 @@ public class WOToJSON {
                     // Set the body as a JSON object
                     request.setBody(post);
                     HttpResponse response = http.send(request);
-                    // Parse the JSON response
-                    if(response.getStatusCode() != 201) {
-                        // Deserialize the JSON string into collections of primitive data types.
+                    //UPDATE CONDITION?
+                    if(response.getStatusCode() == 200 || response.getStatusCode() == 201) {
+                        //INSERT RESPONSE_SUCCESS OBJECT
                         String details = response.getBody();
-                        // Cast the values in the 'rs' key as a list
-                        //System.debug('The original list ' + results);
-                        //1      List<Boolean> response_successes = (List<Object>) results.get('success');
-                        Response_Success__c rs = new Response_Success__c();
-                        rs.Response_details__c = details;
-                        //might want to grab the previous date
-                        rs.CreatedDate = system.now();
-                        insert rs;
-                        System.debug('rs'+rs);
-                        System.debug('The status code returned was not expected: ' + response.getStatusCode() + ' TEST ' + response.getStatus() + ' TEST ' + response.getBody() + ' ' + post);
-                        //3      System.debug('The attempt at making a list of objects ' + response_successes);
-                        System.debug('Received the following rs:');
+                        WorkOrderToJSON.createResponseSuccess(details);
+                        System.debug('Request success... status == ' + response.getStatusCode() + ' ' + response.getStatus());
                     } else {
-                        System.debug('This request failed...' + response.getBody());
+                        String details = response.getBody();
+                        WorkOrderToJSON.createResponseFailure(details);
+                        System.debug('Request failure... status == ' + response.getBody());
                     }
                 } catch (CalloutException e) {
+                    String details = e.getMessage();
+                    WorkOrderToJSON.createResponseFailure(details);
                     System.debug(e.getMessage());  
                 }
             } catch (JSONException e) {
+                String details = e.getMessage();
+                WorkOrderToJSON.createResponseFailure(details);
                 System.debug(e.getMessage());    
             }        
         } catch (QueryException e) {
+            String details = e.getMessage();
+            WorkOrderToJSON.createResponseFailure(details);
             System.debug(e.getMessage());    
         }
     }
     
+    public static void createResponseSuccess(String details) {
+        Response_Success__c rs = new Response_Success__c();
+        //UPDATE UPPERCASE
+        rs.Response_details__c = details;
+        //CURRENT SYSTEM DATE?
+        rs.CreatedDate = system.now();
+        insert rs;
+    }
+    
+    public static void createResponseFailure(String details) {
+        Response_Failure__c rf = new Response_Failure__c();
+        rf.Reponse_Details__c = details;
+        //CURRENT SYSTEM DATE?
+        rf.CreatedDate = system.now();
+        insert rf;
+    }
+    
     public class WrapperWorkOrder {
-        
         public Datetime woCreatedDate {get;set;}
         public String woStatus {get; set;}
-        
         public WrapperWorkOrder() {
             this.woCreatedDate = null;
             this.woStatus = null; 
