@@ -1,6 +1,6 @@
 public class WOToJSON {
     
-    @InvocableMethod(label='WOToJSON' description='Test pinging external service.')
+    @InvocableMethod(label='WorkOrderToJSON' description='Test pinging external service.')
     public static void calloutMethod(List<ID> ids){
         List<String> woIDS = new List<String>();
         try {
@@ -27,19 +27,36 @@ public class WOToJSON {
             try {
                 String post = JSON.serialize(objWO);
                 system.debug(JSON.serialize(objWO));
-                Http http = new Http();
-                HttpRequest request = new HttpRequest();
-                request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jV');
-                request.setMethod('POST');
-                request.setHeader('Content-Type', 'application/json;charset=UTF-8');
-                // Set the body as a JSON object
-                request.setBody(post);
-                HttpResponse response = http.send(request);
-                // Parse the JSON response
-                if(response.getStatusCode() != 201) {
-                    System.debug('The status code returned was not expected: ' + response.getStatusCode() + ' ' + response.getStatus());
-                } else {
-                    System.debug(response.getBody());
+                try {
+                    Http http = new Http();
+                    HttpRequest request = new HttpRequest();
+                    request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jV');
+                    request.setMethod('POST');
+                    request.setHeader('Content-Type', 'application/json;charset=UTF-8');
+                    // Set the body as a JSON object
+                    request.setBody(post);
+                    HttpResponse response = http.send(request);
+                    // Parse the JSON response
+                    if(response.getStatusCode() != 201) {
+                        // Deserialize the JSON string into collections of primitive data types.
+                        String details = response.getBody();
+                        // Cast the values in the 'rs' key as a list
+                        //System.debug('The original list ' + results);
+                        //1      List<Boolean> response_successes = (List<Object>) results.get('success');
+                        Response_Success__c rs = new Response_Success__c();
+                        rs.Response_details__c = details;
+                        //might want to grab the previous date
+                        rs.CreatedDate = system.now();
+                        insert rs;
+                        System.debug('rs'+rs);
+                        System.debug('The status code returned was not expected: ' + response.getStatusCode() + ' TEST ' + response.getStatus() + ' TEST ' + response.getBody() + ' ' + post);
+                        //3      System.debug('The attempt at making a list of objects ' + response_successes);
+                        System.debug('Received the following rs:');
+                    } else {
+                        System.debug('This request failed...' + response.getBody());
+                    }
+                } catch (CalloutException e) {
+                    System.debug(e.getMessage());  
                 }
             } catch (JSONException e) {
                 System.debug(e.getMessage());    
@@ -58,7 +75,5 @@ public class WOToJSON {
             this.woCreatedDate = null;
             this.woStatus = null; 
         }
-    }
-    
-    
+    } 
 }
