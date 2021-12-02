@@ -32,6 +32,8 @@ public class WOToJSON {
                 try {
                     Http http = new Http();
                     HttpRequest request = new HttpRequest();
+                    //To create a 404 Response Failure
+                    //request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jVTEST');
                     request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jV');
                     request.setMethod('POST');
                     request.setHeader('Content-Type', 'application/json;charset=UTF-8');
@@ -72,15 +74,20 @@ public class WOToJSON {
         rs.Response_details__c = details;
         //CURRENT SYSTEM DATE?
         rs.CreatedDate = system.now();
-        insert rs;
+        try {insert rs;
+            } catch(SObjectException se) {
+                System.debug('The following exception has occurred: ' + se.getMessage());
+            }
     }
     
     public static void createResponseFailure(String details) {
         Response_Failure__c rf = new Response_Failure__c();
         rf.Reponse_Details__c = details;
-        //CURRENT SYSTEM DATE?
-        rf.CreatedDate = system.now();
-        insert rf;
+        try {
+            insert rf;
+        } catch(SObjectException se) {
+            System.debug('The following exception has occurred: ' + se.getMessage());
+        }
     }
     
     public class WrapperWorkOrder {
