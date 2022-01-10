@@ -1,0 +1,26 @@
+//Class which gathers selected records from a record list view
+public class ListViewController_II {
+    
+    /**This is the list which will be passed to Visualforce Page and in turn passed to Flow from Visualforce**/
+    public List < Response_Failure__c > LstSelectedRFs {
+        get;
+        set;
+    }
+    
+    public ListViewController_II(ApexPages.StandardSetController listcontroller) {
+        
+        Set < Id > rfSelectedIds = new set < Id > ();
+        LstSelectedRFs = new List <Response_Failure__c >();
+        
+        for (Response_Failure__c rf: (Response_Failure__c[]) listcontroller.getSelected()) {
+            rfSelectedIds.add(rf.id);
+            //System.debug('TEST ' + rf.id);
+        }
+        
+        /**Querying on the Selected records and fetching fields which are required in Flow **/
+        LstSelectedRFs = [select Id, Reponse_Details__c from Response_Failure__c where id in: rfSelectedIds];
+        //System.debug('LSTSELECTEDRF: ' + LstSelectedRFs);
+        
+    }
+    
+}

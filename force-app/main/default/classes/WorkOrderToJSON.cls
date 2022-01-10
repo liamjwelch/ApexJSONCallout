@@ -1,5 +1,8 @@
-public class WOToJSON {
+//Class called by flow when a Work Order is updated or created
+public class WorkOrderToJSON {
     
+    //Method called by the flow that receives the Id of the created or updated WorkOrder
+    //Queries relevant data for transmission to endpoint
     @InvocableMethod(label='WorkOrderToJSON' description='Test pinging external service.')
     public static void calloutMethod(List<ID> ids){
         List<String> woIDS = new List<String>();
@@ -8,7 +11,6 @@ public class WOToJSON {
             for (WorkOrder wo : workOrders) {
                 woIDS.add(wo.RootWorkOrderId);
                 Id idToPost = workOrders.get(0).RootWorkOrderID;
-                //Callout
                 WorkOrderToJSON.getPostJSON(idToPost);
             }
         } catch (QueryException e) {
@@ -18,9 +20,9 @@ public class WOToJSON {
         }
     }
     
+    //Gets the JSON information from the invocable method and POSTS it to the HTTP endpoint
     @future(callout=true)
     public static void getPostJSON(Id lookupID) {
-        //Gets ID from Flow
         try {
             WorkOrder objWO = [SELECT CreatedDate, Status FROM WorkOrder WHERE RootWorkOrderId = : lookupID];
             WrapperWorkOrder objWrapperWO = new WrapperWorkOrder();
@@ -32,22 +34,21 @@ public class WOToJSON {
                 try {
                     Http http = new Http();
                     HttpRequest request = new HttpRequest();
-                    //To create a 404 Response Failure
-                    //request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jVTEST');
-                    request.setEndpoint('https://hookb.in/1gaD1dD8l9cd6NOO69jV');
+                    request.setEndpoint('https://enu0r5w2zt5vj6l.m.pipedream.net');
                     request.setMethod('POST');
                     request.setHeader('Content-Type', 'application/json;charset=UTF-8');
                     // Set the body as a JSON object
                     request.setBody(post);
                     HttpResponse response = http.send(request);
-                    //UPDATE CONDITION?
+                    //SUCCESS CONDITIONS
                     if(response.getStatusCode() == 200 || response.getStatusCode() == 201) {
                         //INSERT RESPONSE_SUCCESS OBJECT
-                        String details = response.getBody();
+                        String details = 'Success status details were... ' + post;
                         WorkOrderToJSON.createResponseSuccess(details);
                         System.debug('Request success... status == ' + response.getStatusCode() + ' ' + response.getStatus());
                     } else {
-                        String details = response.getBody();
+                        //INSERT RESPONSE_FAILURE OBJECT
+                        String details = post;
                         WorkOrderToJSON.createResponseFailure(details);
                         System.debug('Request failure... status == ' + response.getBody());
                     }
@@ -68,18 +69,17 @@ public class WOToJSON {
         }
     }
     
+    //Method creates a "Reponse Success"
     public static void createResponseSuccess(String details) {
         Response_Success__c rs = new Response_Success__c();
-        //UPDATE UPPERCASE
         rs.Response_details__c = details;
-        //CURRENT SYSTEM DATE?
-        rs.CreatedDate = system.now();
         try {insert rs;
             } catch(SObjectException se) {
                 System.debug('The following exception has occurred: ' + se.getMessage());
             }
     }
     
+    //Method creates a "Reponse Failure"
     public static void createResponseFailure(String details) {
         Response_Failure__c rf = new Response_Failure__c();
         rf.Reponse_Details__c = details;
@@ -90,6 +90,7 @@ public class WOToJSON {
         }
     }
     
+    //For serialization of object into JSON
     public class WrapperWorkOrder {
         public Datetime woCreatedDate {get;set;}
         public String woStatus {get; set;}

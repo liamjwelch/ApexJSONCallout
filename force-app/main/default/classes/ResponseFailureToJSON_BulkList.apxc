@@ -1,16 +1,15 @@
-//Class for handling single retries from record view in SF
-public class ResponseFailureToJSON {
+//Class for handling batch retries from record list view in SF
+public class ResponseFailureToJSON_BulkList {
     
-    //Method called by the flow that receives the Id of the Response Failure
+    //Method called by the flow that receives a list of Response Failure Objects from flow
     //Queries relevant data for transmission to endpoint
-    @InvocableMethod(label='ResponseFailureToJSON' description='Test pinging external service.')
-    public static void calloutMethod(List<ID> ids){
-        List<String> rfIDS = new List<String>();
+    @InvocableMethod(label='ResponseFailureToJSON_BulkList' description='Test pinging external service.')
+    public static void calloutMethod(List<Response_Failure__c> RFSelectedRecs){
         try {
-            List<Response_Failure__c> responseFailures = [SELECT Reponse_Details__c FROM Response_Failure__c WHERE Id in :ids];
-            for (Response_Failure__c rf : responseFailures) {
-                rfIDS.add(rf.Reponse_Details__c);
-                String detailsToPost = responseFailures.get(0).Reponse_Details__c;
+            System.debug('TESTING THE ELEMENTS OF RESPONSE FAILURES LIST: ' + RFSelectedRecs);
+            for (Response_Failure__c rf : RFSelectedRecs) {
+                String detailsToPost = rf.Reponse_Details__c;
+                //System.debug('TESTING THE DETAILS WE ARE GOING TO POST ITERATIVELY ' + detailsToPost);
                 ResponseFailureToJSON.retryJSON(detailsToPost);
             }
         } catch (QueryException e) {
@@ -18,7 +17,6 @@ public class ResponseFailureToJSON {
         }
     }
     
-    //Gets the JSON information from the invocable method and POSTS it to the HTTP endpoint
     @future(callout=true)
     public static void retryJSON(String postInformation) {
         try {
@@ -27,9 +25,13 @@ public class ResponseFailureToJSON {
             request.setEndpoint('https://enu0r5w2zt5vj6l.m.pipedream.net');
             request.setMethod('POST');
             request.setHeader('Content-Type', 'application/json;charset=UTF-8');
+            // Set the body as a JSON object
             request.setBody(postInformation);
             HttpResponse response = http.send(request);
+            //UPDATE CONDITION?
             if(response.getStatusCode() == 200 || response.getStatusCode() == 201) {
+                //INSERT RESPONSE_SUCCESS OBJECT
+                String details = response.getBody() + ' ' + postInformation;
                 System.debug('Request success... status == ' + response.getStatusCode() + ' ' + response.getStatus());
             } else {
                 String details = response.getBody() + ' ' + postInformation;
@@ -38,5 +40,6 @@ public class ResponseFailureToJSON {
         } catch (CalloutException e) {
             System.debug(e.getMessage());  
         }
-    }    
+    }
+    
 }

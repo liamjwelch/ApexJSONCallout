@@ -1,0 +1,8 @@
+<apex:page standardController="Response_Failure__c" recordSetVar="Rf" extensions="ListViewController_II" lightningStylesheets="True">
+    
+   <!--This is how we call the Flow with a input paramater. Here rfSelectedRecs_test is the input variable of the Flow-->
+   <flow:interview name="A_ResponseFailureListView_II">
+        <apex:param name="rfSelectedRecs_test" value="{!LstSelectedRFs}" />
+    </flow:interview>
+    
+</apex:page>
